@@ -1,5 +1,6 @@
 import React from 'react';
-import { NavLink, Outlet } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
   FolderGit2,
@@ -11,6 +12,7 @@ import {
   Settings,
   Bell,
   Terminal,
+  LogOut,
 } from 'lucide-react';
 
 const navigation = [
@@ -25,6 +27,18 @@ const navigation = [
 ];
 
 export const AppLayout: React.FC = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login', { replace: true });
+  };
+
+  const userInitials = user?.email
+    ? user.email.split('@')[0].slice(0, 2).toUpperCase()
+    : 'DP';
+
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans">
       {/* Sidebar */}
@@ -94,11 +108,23 @@ export const AppLayout: React.FC = () => {
             </button>
             <div className="h-7 w-px bg-slate-800"></div>
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-xs font-semibold text-white">
-                DP
+              <div className="h-8 w-8 rounded-full bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-xs font-semibold text-white shadow-sm">
+                {userInitials}
               </div>
-              <span className="text-sm font-medium text-slate-300">Admin</span>
+              <span className="text-sm font-medium text-slate-300 max-w-[150px] truncate" title={user?.email}>
+                {user?.email || 'User'}
+              </span>
             </div>
+            <div className="h-7 w-px bg-slate-800"></div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium text-slate-400 hover:text-rose-400 hover:bg-rose-950/30 border border-transparent hover:border-rose-900/40 transition-colors cursor-pointer"
+              title="Sign out"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              <span>Logout</span>
+            </button>
           </div>
         </header>
 
