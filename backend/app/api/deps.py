@@ -1,6 +1,8 @@
 """Dependencies for FastAPI endpoints."""
+
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
@@ -42,7 +44,7 @@ async def get_current_user(
     if user is None:
         raise UnauthorizedException("User not found")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if user.locked_until and user.locked_until > now:
         remaining_seconds = int((user.locked_until - now).total_seconds())
         minutes_remaining = max(1, (remaining_seconds + 59) // 60)

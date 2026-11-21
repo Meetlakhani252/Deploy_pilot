@@ -1,5 +1,7 @@
 """API v1 router init."""
+
 from fastapi import APIRouter
+
 from app.api.v1.auth import router as auth_router
 
 api_v1_router = APIRouter()

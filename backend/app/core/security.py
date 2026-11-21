@@ -1,11 +1,12 @@
 """Security and authentication utilities using argon2-cffi and PyJWT."""
+
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
+import jwt
 from argon2 import PasswordHasher
 from argon2.exceptions import InvalidHashError, VerifyMismatchError
-import jwt
 
 from app.core.config import settings
 from app.core.exceptions import InvalidTokenException
@@ -15,7 +16,6 @@ if settings.ENVIRONMENT == "test":
     _ph = PasswordHasher(time_cost=1, memory_cost=1024, parallelism=1)
 else:
     _ph = PasswordHasher()
-
 
 
 def hash_password(password: str) -> str:
@@ -37,7 +37,7 @@ def create_access_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """Generate short-lived JWT access token (default 15 minutes)."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_delta:
         expire = now + expires_delta
     else:
@@ -60,7 +60,7 @@ def create_refresh_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """Generate rotating JWT refresh token (default 7 days)."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_delta:
         expire = now + expires_delta
     else:
@@ -90,6 +90,8 @@ def decode_token(token: str, expected_type: str | None = None) -> dict[str, Any]
         raise InvalidTokenException(f"Invalid or expired token: {str(e)}") from e
 
     if expected_type and payload.get("type") != expected_type:
-        raise InvalidTokenException(f"Expected {expected_type} token, but got {payload.get('type')}")
+        raise InvalidTokenException(
+            f"Expected {expected_type} token, but got {payload.get('type')}"
+        )
 
     return payload

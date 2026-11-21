@@ -1,4 +1,5 @@
 """Application configuration settings."""
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,9 +16,9 @@ class Settings(BaseSettings):
     # JWT & Session settings
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # Short-lived access token (15 min)
-    REFRESH_TOKEN_EXPIRE_DAYS: int = 7     # Rotating refresh token (7 days)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # Rotating refresh token (7 days)
     COOKIE_NAME: str = "deploypilot_refresh_token"
-    COOKIE_SECURE: bool = False             # Set to True in HTTPS/production
+    COOKIE_SECURE: bool = False  # Set to True in HTTPS/production
     COOKIE_SAMESITE: str = "lax"
 
     # Account Lockout settings (FR-01, M1: 5 failures in 10 min -> 15 min lock)

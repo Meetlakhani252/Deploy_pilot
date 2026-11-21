@@ -1,5 +1,7 @@
 """Standard application exceptions and error structures according to TSD Section 6."""
+
 from typing import Any
+
 from fastapi import HTTPException, status
 
 
@@ -21,7 +23,9 @@ class AppException(HTTPException):
 
 
 class InvalidCredentialsException(AppException):
-    def __init__(self, message: str = "Invalid email or password", details: Any | None = None) -> None:
+    def __init__(
+        self, message: str = "Invalid email or password", details: Any | None = None
+    ) -> None:
         super().__init__(
             code="INVALID_CREDENTIALS",
             message=message,
@@ -58,7 +62,9 @@ class UserAlreadyExistsException(AppException):
 
 
 class UnauthorizedException(AppException):
-    def __init__(self, message: str = "Authentication credentials were not provided or are invalid") -> None:
+    def __init__(
+        self, message: str = "Authentication credentials were not provided or are invalid"
+    ) -> None:
         super().__init__(
             code="UNAUTHORIZED",
             message=message,

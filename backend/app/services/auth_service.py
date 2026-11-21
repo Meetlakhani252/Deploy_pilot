@@ -1,6 +1,7 @@
 """Authentication service handling business logic, lockout logic and session rotation."""
+
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -36,7 +37,7 @@ async def signup_user(db: AsyncSession, data: UserSignUp) -> tuple[User, str, st
 
     hashed_pw = hash_password(data.password)
     user_id = uuid.uuid4()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     user = User(
         id=user_id,
@@ -81,7 +82,7 @@ async def signup_user(db: AsyncSession, data: UserSignUp) -> tuple[User, str, st
 async def authenticate_user(db: AsyncSession, data: UserLogin) -> tuple[User, str, str]:
     """Authenticate a user, enforcing 5-failed-in-10-min lockout logic and rotating tokens."""
     normalized_email = data.email.strip().lower()
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
 
     stmt = select(User).where(User.email == normalized_email)
     result = await db.execute(stmt)
@@ -89,7 +90,9 @@ async def authenticate_user(db: AsyncSession, data: UserLogin) -> tuple[User, st
 
     if user is None:
         # Dummy verification to mitigate timing attacks
-        verify_password(data.password, "$argon2id$v=19$m=65536,t=3,p=4$dummyhashdummyhash$dummyhashdummyhash")
+        verify_password(
+            data.password, "$argon2id$v=19$m=65536,t=3,p=4$dummyhashdummyhash$dummyhashdummyhash"
+        )
         raise InvalidCredentialsException("Invalid email or password")
 
     # Check existing lockout state
@@ -192,7 +195,7 @@ async def refresh_user_session(db: AsyncSession, refresh_token: str) -> tuple[Us
     if user is None:
         raise InvalidTokenException("User does not exist")
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if user.locked_until and user.locked_until > now:
         remaining_seconds = int((user.locked_until - now).total_seconds())
         minutes_remaining = max(1, (remaining_seconds + 59) // 60)

@@ -1,4 +1,5 @@
 """Main FastAPI Application Entrypoint according to DeployPilot TSD."""
+
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -70,11 +71,13 @@ async def validation_exception_handler(_: Request, exc: RequestValidationError) 
     errors = []
     for err in exc.errors():
         field = ".".join(str(loc) for loc in err["loc"] if loc not in ("body",))
-        errors.append({
-            "field": field,
-            "message": err["msg"],
-            "type": err["type"],
-        })
+        errors.append(
+            {
+                "field": field,
+                "message": err["msg"],
+                "type": err["type"],
+            }
+        )
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={

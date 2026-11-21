@@ -1,15 +1,14 @@
 """Test database and fixtures for DeployPilot Authentication."""
-from datetime import datetime, timezone
-from typing import Any
+
 import uuid
+from datetime import UTC, datetime
+from typing import Any
 
 import pytest
 from httpx import ASGITransport, AsyncClient
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
 from app.core.config import settings
+from app.core.database import get_db
 from app.main import app
 from app.models.models import AuditLog, Setting, User
 
@@ -33,7 +32,7 @@ class InMemoryAsyncSession:
             if not getattr(obj, "id", None):
                 obj.id = uuid.uuid4()
             if not getattr(obj, "ts", None):
-                obj.ts = datetime.now(timezone.utc)
+                obj.ts = datetime.now(UTC)
             self.audit_logs.append(obj)
         elif isinstance(obj, Setting):
             self.settings[obj.user_id] = obj
@@ -66,10 +65,13 @@ class InMemoryAsyncSession:
                 class ScalarsWrapper:
                     def __init__(self, items: list[Any]) -> None:
                         self._items = items
+
                     def all(self) -> list[Any]:
                         return self._items
+
                     def first(self) -> Any:
                         return self._items[0] if self._items else None
+
                 return ScalarsWrapper([self._item] if self._item is not None else [])
 
         # 1. Query count of AuditLog
@@ -129,6 +131,7 @@ def test_db() -> InMemoryAsyncSession:
 @pytest.fixture
 async def client(test_db: InMemoryAsyncSession):
     """HTTP client wired to the in-memory database."""
+
     async def override_get_db():
         yield test_db
 

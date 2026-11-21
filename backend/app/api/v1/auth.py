@@ -1,4 +1,5 @@
 """Authentication router implementing FR-01, Module M1."""
+
 from fastapi import APIRouter, Depends, Request, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 

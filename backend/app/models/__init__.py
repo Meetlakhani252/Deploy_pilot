@@ -1,4 +1,5 @@
 """Models package export."""
+
 from app.models.models import (
     AIAnalysis,
     Approval,

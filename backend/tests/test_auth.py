@@ -1,6 +1,8 @@
 """Tests for User Authentication, Argon2 hashing, Lockout logic, and Sessions (FR-01, M1)."""
-from datetime import datetime, timedelta, timezone
+
 import uuid
+from datetime import UTC, datetime, timedelta
+
 import pytest
 from httpx import AsyncClient
 
@@ -12,13 +14,12 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.models.models import User
 from tests.conftest import InMemoryAsyncSession
-
 
 # ---------------------------------------------------------------------------
 # 1. Password Hashing & Security Unit Tests
 # ---------------------------------------------------------------------------
+
 
 def test_argon2_password_hashing():
     """Verify password hashing with argon2-cffi."""
@@ -63,6 +64,7 @@ def test_jwt_token_claims_and_expiration():
 # ---------------------------------------------------------------------------
 # 2. Signup Endpoint Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_signup_success(client: AsyncClient):
@@ -121,6 +123,7 @@ async def test_signup_duplicate_email_rejected(client: AsyncClient):
 # 3. Login Endpoint Tests & Lockout Logic (5 failures in 10 min -> 15 min lock)
 # ---------------------------------------------------------------------------
 
+
 @pytest.mark.asyncio
 async def test_login_success(client: AsyncClient):
     """POST /auth/login with valid credentials returns session and sets cookie."""
@@ -161,7 +164,9 @@ async def test_login_invalid_password(client: AsyncClient):
 
 
 @pytest.mark.asyncio
-async def test_account_lockout_after_5_failed_logins(client: AsyncClient, test_db: InMemoryAsyncSession):
+async def test_account_lockout_after_5_failed_logins(
+    client: AsyncClient, test_db: InMemoryAsyncSession
+):
     """5 failures in 10 minutes triggers 15-minute account lockout."""
     email = "lockout@example.com"
     await client.post(
@@ -208,7 +213,7 @@ async def test_lockout_expires_resets_account(client: AsyncClient, test_db: InMe
 
     # Manually simulate expired lock in the DB
     user = test_db.users_by_email[email]
-    user.locked_until = datetime.now(timezone.utc) - timedelta(minutes=1)
+    user.locked_until = datetime.now(UTC) - timedelta(minutes=1)
     user.failed_logins = 5
 
     # Login with correct password succeeds and clears lock
@@ -224,6 +229,7 @@ async def test_lockout_expires_resets_account(client: AsyncClient, test_db: InMe
 # ---------------------------------------------------------------------------
 # 4. Refresh & Logout Endpoint Tests
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_refresh_token_rotation(client: AsyncClient):
@@ -280,6 +286,7 @@ async def test_logout_clears_cookie(client: AsyncClient):
 # ---------------------------------------------------------------------------
 # 5. Protected Endpoint Tests (GET /auth/me)
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.asyncio
 async def test_get_me_authenticated(client: AsyncClient):
